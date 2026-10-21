@@ -1,0 +1,64 @@
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import subprocess
+import time
+import os
+
+last_run = 0
+
+class InvoiceHandler(FileSystemEventHandler):
+
+    def on_any_event(self, event):
+
+        global last_run
+
+        if event.is_directory:
+            return
+
+        if not event.src_path.lower().endswith((".jpg", ".jpeg", ".png")):
+            return
+
+        current_time = time.time()
+
+        # Ignore repeated events within 5 seconds
+        if current_time - last_run < 5:
+            return
+
+        last_run = current_time
+
+        print(f"\nInvoice detected: {event.src_path}")
+
+        time.sleep(2)
+
+        try:
+            subprocess.run(
+                ["py", "SCRIPTS/process_invoice.py", event.src_path],
+                check=True
+            )
+
+            print("Invoice processed successfully.")
+
+        except Exception as e:
+            print("ERROR:", e)
+
+WATCH_FOLDER = r"C:\Users\aarsh\OneDrive\UPLOADS"
+
+observer = Observer()
+observer.schedule(
+    InvoiceHandler(),
+    WATCH_FOLDER,
+    recursive=False
+)
+
+observer.start()
+
+print("Watching OneDrive UPLOADS folder...")
+
+try:
+    while True:
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    observer.stop()
+
+observer.join()
