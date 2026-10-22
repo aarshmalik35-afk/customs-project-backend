@@ -20,4 +20,4 @@ COPY customs-ocr-backend/ /app/
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "gunicorn -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:${PORT:-10000}"]
+CMD ["sh", "-c", "gunicorn -k uvicorn.workers.UvicornWorker app:app --bind 0.0.0.0:${PORT:-10000} --timeout 120"]
